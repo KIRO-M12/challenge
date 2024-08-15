@@ -4,75 +4,157 @@
     <meta charset="UTF-8">
     <title>Upload CSV File</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            width: 100%;
-            text-align: center;
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-size: 16px;
-            color: #555;
-        }
-        input[type="file"] {
-            display: block;
-            margin: 0 auto;
-            padding: 10px;
-            font-size: 16px;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .error-message {
-            color: red;
-            margin-top: 20px;
-        }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    transition: transform 0.3s ease-in-out;
+}
+
+.container:hover {
+    transform: translateY(-5px);
+}
+
+h1 {
+    color: #333;
+    font-size: 24px;
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+label {
+    display: block;
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: #555;
+}
+
+input[type="file"] {
+    display: block;
+    margin: 0 auto 20px auto;
+    padding: 12px 15px;
+    font-size: 16px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    width: 100%;
+    max-width: 350px;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+input[type="file"]:hover {
+    border-color: #007bff;
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    font-size: 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    margin-top: 15px;
+}
+
+button:hover {
+    background-color: #0056b3;
+    transform: translateY(-3px);
+}
+
+button:active {
+    background-color: #004494;
+}
+
+.hidden {
+    display: none;
+}
+
+.error-message {
+    color: red;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    margin-left: 10px;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+.btn-secondary:active {
+    background-color: #495057;
+}
+
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Upload CSV File</h1>
-        <form action="upload.php" method="post" enctype="multipart/form-data">
+        <form id="uploadForm" action="upload.php" method="post" enctype="multipart/form-data">
             <label for="file">Choose CSV File:</label>
-            <input type="file" name="file" id="file" accept=".csv">
-            <button type="submit">Upload and Generate PDF</button>
+            <input type="file" name="file" id="file" accept=".csv" required>
+            <button type="button" id="generateBtn">Generate PDF</button>
+            <button type="button" id="previewBtn" class="hidden">Preview PDF</button>
+            <button type="button" id="downloadBtn" class="hidden btn-secondary">Download PDF</button>
         </form>
-        <script>
-            <?php
-            if (isset($_GET['error'])) {
-                echo '<p class="error-message">' . htmlspecialchars($_GET['error']) . '</p>';
-            }
-            ?>
-        </script>
+        <div class="error-message hidden" id="errorMessage"></div>
     </div>
+    
+
+    <script>
+        document.getElementById('generateBtn').addEventListener('click', function() {
+            var formData = new FormData(document.getElementById('uploadForm'));
+
+            fetch('upload.php', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                // Create a URL for the generated PDF
+                const pdfUrl = URL.createObjectURL(blob);
+
+                // Display the preview and download buttons
+                document.getElementById('previewBtn').classList.remove('hidden');
+                document.getElementById('downloadBtn').classList.remove('hidden');
+
+                // Set up the preview button
+                document.getElementById('previewBtn').addEventListener('click', function() {
+                    window.open(pdfUrl, '_blank');
+                });
+
+                // Set up the download button
+                document.getElementById('downloadBtn').addEventListener('click', function() {
+                    const a = document.createElement('a');
+                    a.href = pdfUrl;
+                    a.download = 'products.pdf';
+                    a.click();
+                });
+            })
+            .catch(error => {
+                console.error('Error generating PDF:', error);
+            });
+        });
+    </script>
 </body>
 </html>
